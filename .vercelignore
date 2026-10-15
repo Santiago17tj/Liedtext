@@ -1,0 +1,8 @@
+tests/
+.claude/
+.pytest_cache/
+__pycache__/
+*.pdf
+README.md
+requirements-dev.txt
+run.py

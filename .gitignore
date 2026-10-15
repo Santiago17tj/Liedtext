@@ -1,0 +1,10 @@
+data/
+.env*
+*.letracrack.json
+plantilla-letracrack.pdf
+.vercel/
+.claude/
+tests/_out/
+__pycache__/
+.pytest_cache/
+*.pyc

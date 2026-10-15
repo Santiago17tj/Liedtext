@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Letracrack · Tu letra en hojas</title>
+<meta name="description" content="Convierte un texto en hojas escritas a mano con tu propia letra.">
+<style>
+  :root {
+    --bg: #f6f3ec; --card: #ffffff; --ink: #1b2038; --muted: #50566b; --line: #d9d3c3;
+    --accent: #1f3f94; --accent-ink: #ffffff; --accent-soft: #e4ebfb;
+    --ok: #17673f; --ok-soft: #e2f3e9; --warn: #8a4f00; --warn-soft: #fcefd6; --bad: #a3231b; --bad-soft: #fbe5e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161d; --card: #1e212b; --ink: #f1f2f7; --muted: #b5b9cb; --line: #3a3f50;
+      --accent: #9db4ff; --accent-ink: #0b1230; --accent-soft: #252d4d;
+      --ok: #73dba5; --ok-soft: #173424; --warn: #f3bd66; --warn-soft: #382a10; --bad: #ff9a92; --bad-soft: #3c1d1a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 18px; scroll-behavior: smooth; }
+  @media (min-width: 700px) { html { font-size: 20px; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Segoe UI", system-ui, -apple-system, sans-serif; line-height: 1.55; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+  a { color: var(--accent); }
+
+  header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0 8px; }
+  .brand { font-family: Georgia, "Times New Roman", serif; font-size: 1.7rem; font-weight: 700; letter-spacing: -.02em; margin: 0; }
+  .brand span { color: var(--accent); }
+  .tagline { margin: 0 0 14px; color: var(--muted); }
+
+  ol.progress { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0; margin: 0 0 20px; }
+  ol.progress li { text-align: center; font-size: .78rem; color: var(--muted); }
+  ol.progress li .dot { width: 2.1rem; height: 2.1rem; margin: 0 auto 2px; border-radius: 50%; display: grid; place-items: center;
+                        background: var(--card); border: 2px solid var(--line); font-weight: 700; font-size: .95rem; color: var(--ink); }
+  ol.progress li.now .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  ol.progress li.now { color: var(--ink); font-weight: 700; }
+  ol.progress li.done .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
+
+  .screen { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px 18px; }
+  @media (min-width: 600px) { .screen { padding: 30px 32px; } }
+  .screen h2 { font-family: Georgia, serif; font-size: 1.55rem; margin: 0 0 6px; line-height: 1.25; outline: none; }
+  .lead { margin: 0 0 20px; color: var(--muted); }
+
+  button, .btn { font: inherit; font-weight: 600; min-height: 3.1rem; padding: .55rem 1.3rem; border-radius: 14px; border: 2px solid var(--line);
+                 background: var(--card); color: var(--ink); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+                 justify-content: center; gap: .5rem; text-align: center; }
+  button:hover, .btn:hover { border-color: var(--accent); }
+  .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .primary:hover { filter: brightness(1.1); }
+  .big { min-height: 3.6rem; font-size: 1.1rem; padding: .7rem 1.8rem; }
+  .link { border: none; background: none; color: var(--accent); text-decoration: underline; min-height: 2.4rem; padding: .2rem .4rem; font-weight: 500; }
+  .danger { color: var(--bad); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); }
+
+  input[type=text], input[type=password], textarea { font: inherit; width: 100%; color: var(--ink); background: var(--bg); border: 2px solid var(--line);
+                                                    border-radius: 14px; padding: .75rem 1rem; }
+  textarea { min-height: 13rem; resize: vertical; }
+  label.f { display: block; font-weight: 600; margin-bottom: 6px; }
+  .hint { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+
+  .notice { padding: .8rem 1rem; border-radius: 14px; margin: 14px 0 0; font-size: .95rem; }
+  .notice.ok { background: var(--ok-soft); color: var(--ok); } .notice.warn { background: var(--warn-soft); color: var(--warn); }
+  .notice.bad { background: var(--bad-soft); color: var(--bad); } .notice.info { background: var(--accent-soft); color: var(--ink); }
+  .notice b { font-weight: 700; }
+
+  /* pasos numerados */
+  ol.how { list-style: none; counter-reset: s; padding: 0; margin: 0 0 18px; display: grid; gap: 14px; }
+  ol.how li { counter-increment: s; display: grid; grid-template-columns: 2.4rem 1fr; gap: 12px; }
+  ol.how li::before { content: counter(s); width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+                      display: grid; place-items: center; font-weight: 700; }
+  ol.how li b { display: block; } ol.how li span { color: var(--muted); font-size: .92rem; }
+  .demo { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 10px; margin: 6px 0 20px; }
+  .demo svg { width: 100%; height: auto; display: block; }
+  .demo p { margin: 6px 4px 2px; font-size: .85rem; color: #4a4f63; }
+  .tips { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin: 4px 0 18px; }
+  @media (max-width: 560px) { .tips { grid-template-columns: 1fr; } }
+  .tip { border-radius: 14px; padding: .8rem 1rem; font-size: .9rem; } .tip h3 { margin: 0 0 4px; font-size: .95rem; } .tip ul { margin: 0; padding-left: 1.1rem; }
+  .tip.yes { background: var(--ok-soft); } .tip.no { background: var(--bad-soft); }
+
+  /* letras guardadas */
+  .cards { display: grid; gap: 12px; margin: 12px 0 20px; }
+  .card { border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .card.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .card .nm { font-weight: 700; font-size: 1.1rem; } .card .sub { font-size: .85rem; color: var(--muted); }
+
+  /* fotos */
+  .picks { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 560px) { .picks { grid-template-columns: 1fr; } }
+  .pick { flex-direction: column; min-height: 6.5rem; border-style: dashed; background: var(--bg); }
+  .pick .ic { font-size: 1.9rem; line-height: 1; }
+  .pick.over { border-color: var(--accent); background: var(--accent-soft); }
+  .thumbs { display: grid; gap: 10px; margin-top: 16px; }
+  .thumb { display: grid; grid-template-columns: 4rem 1fr; gap: 12px; align-items: center; border: 2px solid var(--line); border-radius: 14px; padding: 8px; }
+  .thumb img { width: 4rem; height: 4rem; object-fit: cover; border-radius: 8px; }
+  .thumb .st { font-size: .9rem; color: var(--muted); } .thumb.ok { border-color: var(--ok); } .thumb.ok .st { color: var(--ok); }
+  .thumb.bad { border-color: var(--bad); } .thumb.bad .st { color: var(--bad); }
+  .meter { height: 14px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0; }
+  .meter i { display: block; height: 100%; background: var(--ok); transition: width .4s; }
+  details { margin-top: 16px; } summary { cursor: pointer; font-weight: 600; color: var(--accent); padding: 6px 0; }
+  .glyphs { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 10px; }
+  .gl { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 4px 6px 38px; position: relative; min-height: 110px; display: flex; align-items: flex-end; gap: 4px; overflow: hidden; }
+  .gl b { position: absolute; top: 2px; left: 6px; font-size: .75rem; color: #666; }
+  .gl img { position: relative; }
+  .gl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 38px; border-top: 1px solid #c9d6ec; }
+
+  /* escribir */
+  .choices { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
+  .choices label { cursor: pointer; text-align: center; font-weight: 600; }
+  .choices input { position: absolute; opacity: 0; }
+  .choices .box { border: 3px solid var(--line); border-radius: 14px; padding: 8px 6px; display: block; font-size: .92rem; background: var(--card); }
+  .choices input:checked + .box { border-color: var(--accent); background: var(--accent-soft); }
+  .choices input:focus-visible + .box { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sw { height: 3.2rem; border-radius: 8px; margin-bottom: 4px; border: 1px solid var(--line); background-color: #fffefb; }
+  .sw.rayado { background-image: repeating-linear-gradient(#fffefb 0 10px, #8fb4e8 10px 11px); }
+  .sw.cuadriculado { background-image: linear-gradient(#bcd6f2 1px, transparent 1px), linear-gradient(90deg, #bcd6f2 1px, transparent 1px); background-size: 10px 10px; }
+  .opt { margin-top: 18px; } .opt > b { display: block; margin-bottom: 8px; }
+  .result { margin-top: 22px; }
+  .result img { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-top: 14px; }
+  .spin { width: 1.1rem; height: 1.1rem; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; display: inline-block; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } html { scroll-behavior: auto; } .meter i { transition: none; } }
+
+  dialog { border: 2px solid var(--line); border-radius: 20px; padding: 24px; max-width: 30rem; width: calc(100% - 32px); background: var(--card); color: var(--ink); }
+  dialog::backdrop { background: rgba(10, 12, 24, .55); }
+  dialog h2 { margin: 0 0 10px; font-family: Georgia, serif; font-size: 1.35rem; }
+  dialog .row { justify-content: flex-end; margin-top: 18px; }
+  dialog h3 { margin: 16px 0 2px; font-size: 1rem; } dialog p { margin: 0; color: var(--muted); font-size: .92rem; }
+  noscript { display: block; padding: 1rem; background: var(--bad-soft); color: var(--bad); border-radius: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 class="brand">Letra<span>crack</span></h1>
+    <button type="button" id="helpBtn">❓ Ayuda</button>
+  </header>
+  <p class="tagline">Convierte un texto en hojas escritas con tu propia letra.</p>
+  <noscript>Esta página necesita JavaScript activado para funcionar.</noscript>
+
+  <ol class="progress" id="progress" aria-label="Pasos">
+    <li><div class="dot">1</div>Mi letra</li>
+    <li><div class="dot">2</div>Imprimir</li>
+    <li><div class="dot">3</div>Fotos</li>
+    <li><div class="dot">4</div>Escribir</li>
+  </ol>
+
+  <!-- 1 · Mi letra -->
+  <section class="screen" id="s1" hidden aria-labelledby="h1">
+    <h2 id="h1" tabindex="-1">¿De quién es la letra?</h2>
+    <p class="lead">Primero el programa necesita aprender cómo escribes. Toma unos 10 minutos y solo se hace una vez.</p>
+    <div id="saved" hidden>
+      <b>Letras guardadas en este dispositivo</b>
+      <div class="cards" id="cards"></div>
+    </div>
+    <label class="f" for="newName">Agregar una letra nueva</label>
+    <div class="row">
+      <input type="text" id="newName" maxlength="40" placeholder="Escribe un nombre. Ejemplo: Ana" autocomplete="off" style="flex:1;min-width:12rem">
+      <button type="button" class="primary big" id="createBtn">Empezar</button>
+    </div>
+    <div id="nameMsg" aria-live="polite"></div>
+    <p class="hint">🔒 Tu letra se guarda solo en este dispositivo. No se sube a ninguna cuenta.</p>
+    <details>
+      <summary>Guardar o recuperar mi letra en un archivo</summary>
+      <p class="hint" style="margin-bottom:10px">Sirve para pasar tu letra a otro celular o computador, o para no perderla si borras los datos del navegador.</p>
+      <div class="row">
+        <button type="button" id="exportBtn">Guardar mi letra en un archivo</button>
+        <button type="button" id="importBtn">Abrir un archivo de letra</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+    </details>
+  </section>
+
+  <!-- 2 · Imprimir -->
+  <section class="screen" id="s2" hidden aria-labelledby="h2">
+    <h2 id="h2" tabindex="-1">Imprime la hoja de práctica</h2>
+    <p class="lead">Vas a escribir cada letra, número y signo en su cuadro. Con eso el programa aprende tu letra.</p>
+    <ol class="how">
+      <li><div><b>Imprime estas 3 hojas</b><span>En papel tamaño carta u oficio, al 100 %. Si la impresora pregunta, elige “tamaño real”.</span></div></li>
+      <li><div><b>Escribe con tu bolígrafo de siempre</b><span>Una letra en cada cuadro, apoyada sobre la línea azul. Escribe normal, sin hacerla más bonita.</span></div></li>
+      <li><div><b>Hazlo en las 3 hojas</b><span>Así el resultado se ve natural, porque cada letra sale un poquito distinta.</span></div></li>
+    </ol>
+    <div class="demo" aria-hidden="true">
+      <svg viewBox="0 0 320 235" role="img">
+        <text x="10" y="18" font-size="15" fill="#222" font-family="Arial">g</text>
+        <rect x="8" y="26" width="150" height="124" rx="2" fill="#fff" stroke="#b9cbe4" stroke-width="2"/>
+        <line x1="14" y1="108" x2="152" y2="108" stroke="#7f9fcb" stroke-width="1.6"/>
+        <text x="58" y="108" font-size="76" fill="#243a8a" font-family="'Segoe Print','Ink Free','Bradley Hand',cursive">g</text>
+        <path d="M176 108 H158" stroke="#c0392b" stroke-width="2" marker-end="url(#a)"/>
+        <defs><marker id="a" markerWidth="8" markerHeight="8" refX="2" refY="4" orient="auto"><path d="M8 0 L0 4 L8 8Z" fill="#c0392b"/></marker></defs>
+        <text x="180" y="104" font-size="13" fill="#c0392b" font-family="Arial">Línea azul:</text>
+        <text x="180" y="120" font-size="13" fill="#c0392b" font-family="Arial">apoya aquí la letra</text>
+        <text x="164" y="168" font-size="13" fill="#333" font-family="Arial">La letrita de arriba a la</text>
+        <text x="164" y="184" font-size="13" fill="#333" font-family="Arial">izquierda dice cuál escribir.</text>
+        <rect x="8" y="200" width="16" height="16" fill="#000"/>
+        <text x="32" y="213" font-size="13" fill="#333" font-family="Arial">Los 4 cuadrados negros de las esquinas deben salir en la foto.</text>
+      </svg>
+    </div>
+    <a class="btn primary big" href="/api/template.pdf?sheets=3" target="_blank" rel="noopener">🖨️ Abrir la hoja para imprimir (PDF)</a>
+    <p class="hint">Se abre en otra pestaña. Desde ahí la imprimes o la guardas.</p>
+    <div class="nav">
+      <button type="button" data-go="1">← Atrás</button>
+      <button type="button" class="primary big" data-go="3">Ya la llené → Siguiente</button>
+    </div>
+  </section>
+
+  <!-- 3 · Fotos -->
+  <section class="screen" id="s3" hidden aria-labelledby="h3">
+    <h2 id="h3" tabindex="-1">Toma una foto de cada hoja</h2>
+    <p class="lead">Una foto por hoja. Pon la hoja sobre una mesa, con buena luz, y fotografíala desde arriba.</p>
+    <div class="tips">
+      <div class="tip yes"><h3>✔ Así sí</h3><ul><li>Se ve la hoja completa</li><li>Se ven los 4 cuadrados negros</li><li>Sin sombras ni borrosa</li></ul></div>
+      <div class="tip no"><h3>✘ Así no</h3><ul><li>Fotos de tu cuaderno</li><li>Esquinas cortadas</li><li>Capturas de pantalla</li></ul></div>
+    </div>
+    <div class="picks">
+      <button type="button" class="pick" id="camBtn"><span class="ic" aria-hidden="true">📷</span>Tomar una foto</button>
+      <button type="button" class="pick" id="galBtn"><span class="ic" aria-hidden="true">🖼️</span>Elegir fotos que ya tengo</button>
+    </div>
+    <input type="file" id="camFile" accept="image/*" capture="environment" hidden>
+    <input type="file" id="galFile" accept="image/*" multiple hidden>
+    <div class="thumbs" id="thumbs" aria-live="polite"></div>
+    <div class="row" style="margin-top:16px">
+      <button type="button" class="primary big" id="scanBtn" disabled>Revisar mis fotos</button>
+      <button type="button" class="link" id="clearBtn" hidden>Quitar estas fotos</button>
+    </div>
+    <div id="scanMsg" aria-live="polite"></div>
+
+    <div id="learned" style="margin-top:22px" hidden>
+      <b id="learnedTitle"></b>
+      <div class="meter" aria-hidden="true"><i id="meterBar" style="width:0"></i></div>
+      <div id="learnedMsg"></div>
+      <details>
+        <summary>Ver las letras que aprendí</summary>
+        <div class="glyphs" id="glyphs"></div>
+      </details>
+      <button type="button" class="link danger" id="resetBtn">Borrar las fotos y empezar de nuevo</button>
+    </div>
+    <div class="nav">
+      <button type="button" data-go="2">← Atrás</button>
+      <button type="button" class="primary big" id="toWrite" data-go="4" disabled>Siguiente: escribir mi texto →</button>
+    </div>
+  </section>
+
+  <!-- 4 · Escribir -->
+  <section class="screen" id="s4" hidden aria-labelledby="h4">
+    <h2 id="h4" tabindex="-1">Escribe tu texto</h2>
+    <p class="lead">Pega o escribe lo que quieres pasar a mano. El programa lo escribirá con tu letra.</p>
+    <label class="f" for="text">Tu texto</label>
+    <textarea id="text" placeholder="Pega aquí tu texto…"></textarea>
+    <p class="hint">Consejo: si una línea empieza con <b>#</b> será un título. Si empieza con <b>-</b> será una lista.
+      <button type="button" class="link" id="sampleBtn">Poner un ejemplo</button></p>
+
+    <div class="opt">
+      <b>¿En qué papel?</b>
+      <div class="choices" role="radiogroup" aria-label="Papel">
+        <label><input type="radio" name="paper" value="rayado" checked><span class="box"><div class="sw rayado"></div>Con renglones</span></label>
+        <label><input type="radio" name="paper" value="cuadriculado"><span class="box"><div class="sw cuadriculado"></div>Cuadros</span></label>
+        <label><input type="radio" name="paper" value="blanco"><span class="box"><div class="sw"></div>Hoja blanca</span></label>
+      </div>
+    </div>
+    <details>
+      <summary>Más opciones (tamaño, color…)</summary>
+      <div class="opt"><b>Tamaño de la letra</b>
+        <div class="choices" role="radiogroup" aria-label="Tamaño de la letra">
+          <label><input type="radio" name="size" value="0.8"><span class="box">Pequeña</span></label>
+          <label><input type="radio" name="size" value="1" checked><span class="box">Mediana</span></label>
+          <label><input type="radio" name="size" value="1.25"><span class="box">Grande</span></label>
+        </div></div>
+      <div class="opt"><b>¿Cómo se ve el renglón?</b>
+        <div class="choices" role="radiogroup" aria-label="Orden de la letra">
+          <label><input type="radio" name="nat" value="0.3"><span class="box">Muy ordenado</span></label>
+          <label><input type="radio" name="nat" value="1" checked><span class="box">Natural</span></label>
+          <label><input type="radio" name="nat" value="1.7"><span class="box">Algo descuidado</span></label>
+        </div></div>
+      <div class="opt"><b>Espacio entre letras</b>
+        <div class="choices" role="radiogroup" aria-label="Espacio entre letras">
+          <label><input type="radio" name="space" value="0.0"><span class="box">Juntas</span></label>
+          <label><input type="radio" name="space" value="0.10" checked><span class="box">Normal</span></label>
+          <label><input type="radio" name="space" value="0.22"><span class="box">Separadas</span></label>
+        </div></div>
+      <div class="opt"><b>Color de la tinta</b>
+        <div class="choices" role="radiogroup" aria-label="Color de la tinta">
+          <label><input type="radio" name="ink" value="blue" checked><span class="box">Azul</span></label>
+          <label><input type="radio" name="ink" value="black"><span class="box">Negro</span></label>
+          <label><input type="radio" name="ink" value="profile"><span class="box">Como en mis hojas</span></label>
+        </div></div>
+    </details>
+
+    <div class="row" style="margin-top:22px"><button type="button" class="primary big" id="genBtn">✍️ Pasar a mano</button></div>
+    <div id="genMsg" aria-live="polite"></div>
+    <div class="result" id="result" hidden>
+      <div class="row" id="downloads"></div>
+      <div id="pages"></div>
+    </div>
+    <div class="nav"><button type="button" data-go="3">← Atrás</button><span></span></div>
+  </section>
+
+  <p class="hint" style="text-align:center;margin-top:24px">Letracrack · Tu letra se queda en tu dispositivo.</p>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form method="dialog" id="dlgForm">
+    <h2 id="dlgTitle"></h2>
+    <div id="dlgBody"></div>
+    <div class="row" id="dlgBtns"></div>
+  </form>
+</dialog>
+
+<dialog id="help" aria-labelledby="helpTitle">
+  <h2 id="helpTitle">Ayuda</h2>
+  <h3>¿Qué hace este programa?</h3>
+  <p>Aprende tu letra a partir de una hoja de práctica que tú escribes, y después pasa a mano cualquier texto con esa letra.</p>
+  <h3>¿Se guardan mis fotos?</h3>
+  <p>No. Las fotos se usan una vez para recortar tus letras y luego se descartan. Tu letra queda guardada solo en este dispositivo.</p>
+  <h3>Me dice que no encuentra las 4 marcas</h3>
+  <p>Fotografía la hoja entera, desde arriba, con buena luz, y que se vean los 4 cuadrados negros de las esquinas.</p>
+  <h3>Algunas letras salen raras</h3>
+  <p>Repite esa hoja con más cuidado: cada letra dentro de su cuadro y sin tocar los bordes. Después sube la foto nueva.</p>
+  <h3>¿Puedo usarlo con la letra de otra persona?</h3>
+  <p>Solo con su permiso. Crea una letra nueva con su nombre.</p>
+  <div class="row"><button type="button" class="primary" id="helpClose">Entendido</button></div>
+</dialog>
+
+<script src="/app.js"></script>
+</body>
+</html>
